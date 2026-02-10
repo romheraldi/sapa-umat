@@ -1,98 +1,163 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
+import { HeaderBanner } from '@/components/header-banner';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { AnnouncementCard } from '@/components/ui/announcement-card';
+import { Card } from '@/components/ui/card';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { InfoRow } from '@/components/ui/info-row';
+import { ScheduleItem } from '@/components/ui/schedule-item';
+import { SectionHeader } from '@/components/ui/section-header';
+import { infoGereja, jadwalMisa, pengumuman, quickActions } from '@/constants/mock-data';
+import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { router } from 'expo-router';
+import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  // Get Sunday masses for preview
+  const sundayMasses = jadwalMisa.filter(m => m.hari === 'Minggu').slice(0, 3);
+
+  // Get pinned announcements
+  const pinnedAnnouncements = pengumuman.filter(p => p.isPinned).slice(0, 2);
+
+  return (
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Hero Banner */}
+      <Animated.View entering={FadeIn.duration(600)}>
+        <HeaderBanner
+          title="Santo Arnoldus Janssen"
+          subtitle="Gereja Katolik Bekasi"
+          height={220}
+          backgroundImage={<Image source={require('@/assets/images/church-hero.png')} style={styles.heroImage} />}
+        />
+      </Animated.View>
+
+      {/* Quick Actions */}
+      <Animated.View entering={FadeInDown.duration(500).delay(200)} style={styles.quickActionsContainer}>
+        <Card variant="elevated" padding="md" style={styles.quickActionsCard}>
+          <View style={styles.quickActionsGrid}>
+            {quickActions.map(action => (
+              <Pressable
+                key={action.id}
+                style={styles.quickAction}
+                onPress={() => {
+                  if (action.id === '2') {
+                    router.push('/info-gereja');
+                  } else if (action.route.startsWith('/(tabs)')) {
+                    router.push(action.route as any);
+                  }
+                }}>
+                <View
+                  style={[
+                    styles.quickActionIcon,
+                    {
+                      backgroundColor: action.color + '15',
+                      borderRadius: BorderRadius.md,
+                    },
+                  ]}>
+                  <IconSymbol name={action.icon as any} size={28} color={action.color} />
+                </View>
+                <ThemedText style={styles.quickActionText}>{action.title}</ThemedText>
+              </Pressable>
+            ))}
+          </View>
+        </Card>
+      </Animated.View>
+
+      <View style={styles.content}>
+        {/* Jadwal Misa Minggu Ini */}
+        <Animated.View entering={FadeInDown.duration(500).delay(300)} style={styles.section}>
+          <SectionHeader title="Misa Minggu Ini" linkText="Lihat Semua" onPress={() => router.push('/(tabs)/jadwal')} />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+            {sundayMasses.map(schedule => (
+              <View key={schedule.id} style={styles.scheduleCard}>
+                <ScheduleItem schedule={schedule} />
+              </View>
+            ))}
+          </ScrollView>
+        </Animated.View>
+
+        {/* Pengumuman Terbaru */}
+        <Animated.View entering={FadeInDown.duration(500).delay(400)} style={styles.section}>
+          <SectionHeader
+            title="Pengumuman Terbaru"
+            linkText="Lihat Semua"
+            onPress={() => router.push('/(tabs)/pengumuman')}
+          />
+          {pinnedAnnouncements.map(announcement => (
+            <AnnouncementCard key={announcement.id} announcement={announcement} />
+          ))}
+        </Animated.View>
+
+        {/* Informasi Kontak */}
+        <Animated.View entering={FadeInDown.duration(500).delay(500)} style={styles.section}>
+          <SectionHeader title="Informasi Kontak" />
+          <Card variant="outlined" padding="md">
+            <InfoRow icon="mappin.circle.fill" label="Alamat" value={infoGereja.alamatLengkap} />
+            <InfoRow icon="phone.fill" label="Telepon" value={infoGereja.telepon} />
+            <InfoRow icon="envelope.fill" label="Email" value={infoGereja.email} />
+            <InfoRow
+              icon="clock.fill"
+              label="Jam Sekretariat"
+              value={`${infoGereja.jamOperasionalSekretariat[0].hari}: ${infoGereja.jamOperasionalSekretariat[0].jam}`}
+            />
+          </Card>
+        </Animated.View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+  },
+  heroImage: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  quickActionsContainer: {
+    paddingHorizontal: Spacing.md,
+    marginTop: -Spacing.xl,
+  },
+  quickActionsCard: {
+    ...Shadows.md,
+    marginTop: 25,
+  },
+  quickActionsGrid: {
     flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  quickAction: {
+    flex: 1,
     alignItems: 'center',
-    gap: 8,
+    gap: Spacing.xs,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  quickActionIcon: {
+    width: 56,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  quickActionText: {
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  content: {
+    padding: Spacing.md,
+    gap: Spacing.lg,
+  },
+  section: {
+    gap: Spacing.sm,
+  },
+  horizontalScroll: {
+    marginHorizontal: -Spacing.md,
+    paddingHorizontal: Spacing.md,
+  },
+  scheduleCard: {
+    width: 300,
+    marginRight: Spacing.sm,
   },
 });
