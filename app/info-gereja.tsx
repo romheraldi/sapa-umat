@@ -52,8 +52,12 @@ export default function InfoGerejaScreen() {
                         <InfoRow icon="phone.fill" label="Telepon" value={infoGereja.telepon} />
                         <InfoRow icon="envelope.fill" label="Email" value={infoGereja.email} />
                         {infoGereja.website && <InfoRow icon="globe" label="Website" value={infoGereja.website} />}
+                        {infoGereja.keuskupanAgung && <InfoRow icon="building.columns.fill" label="Keuskupan Agung" value={infoGereja.keuskupanAgung} />}
+                        {infoGereja.uskupAgung && <InfoRow icon="person.fill" label="Uskup Agung" value={infoGereja.uskupAgung} />}
+                        {infoGereja.tahunRenovasi && <InfoRow icon="wrench.and.screwdriver.fill" label="Selesai Renovasi" value={infoGereja.tahunRenovasi} />}
                     </Card>
                 </Animated.View>
+
 
                 {/* Jam Operasional */}
                 <Animated.View entering={FadeInDown.duration(500).delay(400)} style={styles.section}>

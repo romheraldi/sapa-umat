@@ -29,7 +29,11 @@ export function ScheduleItem({ schedule, onPress }: ScheduleItemProps) {
                     <View style={styles.detailRow}>
                         <IconSymbol name="clock.fill" size={14} color={colors.textSecondary} />
                         <ThemedText style={[styles.detailText, { color: colors.textSecondary }]}>
-                            {schedule.hari ? `${schedule.hari}, ` : ''}{schedule.waktu}
+                            {schedule.hari ? `${schedule.hari}` : ''}
+                            {schedule.tanggal
+                                ? `, ${new Date(schedule.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`
+                                : ''}
+                            {schedule.waktu ? ` • ${schedule.waktu}` : ''}
                         </ThemedText>
                     </View>
                     <View style={styles.detailRow}>

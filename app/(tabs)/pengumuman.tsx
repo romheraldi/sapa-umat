@@ -1,15 +1,17 @@
 import { ThemedText } from '@/components/themed-text';
 import { AnnouncementCard } from '@/components/ui/announcement-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { pengumuman } from '@/constants/mock-data';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
-import type { KategoriPengumuman } from '@/constants/types';
+import type { AnnouncementCategoryType, Pengumuman } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useCallback, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/services/api';
+import { router } from 'expo-router';
 
-const CATEGORIES: Array<{ id: KategoriPengumuman | 'Semua'; label: string }> = [
+const CATEGORIES: Array<{ id: AnnouncementCategoryType | 'Semua'; label: string }> = [
     { id: 'Semua', label: 'Semua' },
     { id: 'Liturgi', label: 'Liturgi' },
     { id: 'Kegiatan', label: 'Kegiatan' },
@@ -18,45 +20,37 @@ const CATEGORIES: Array<{ id: KategoriPengumuman | 'Semua'; label: string }> = [
     { id: 'Umum', label: 'Umum' },
 ];
 
+// Adapter: map API Pengumuman -> AnnouncementCard shape
+const toCardShape = (p: Pengumuman) => ({
+    id: p.id,
+    judul: p.judul,
+    kategori: p.kategori,
+    ringkasan: p.ringkasan,
+    tanggalPublikasi: p.published_at,
+    isPinned: p.is_pinned,
+    gambar: p.image_url ?? undefined,
+});
+
 export default function PengumumanScreen() {
     const colorScheme = useColorScheme();
     const colors = Colors[colorScheme ?? 'light'];
     const [searchQuery, setSearchQuery] = useState('');
-    const [activeCategory, setActiveCategory] = useState<KategoriPengumuman | 'Semua'>('Semua');
-    const [refreshing, setRefreshing] = useState(false);
+    const [activeCategory, setActiveCategory] = useState<AnnouncementCategoryType | 'Semua'>('Semua');
 
-    const onRefresh = useCallback(() => {
-        setRefreshing(true);
-        setTimeout(() => {
-            setRefreshing(false);
-        }, 1000);
-    }, []);
-
-    // Filter announcements
-    const filteredAnnouncements = pengumuman.filter(item => {
-        const matchesSearch =
-            searchQuery === '' ||
-            item.judul.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.ringkasan.toLowerCase().includes(searchQuery.toLowerCase());
-
-        const matchesCategory = activeCategory === 'Semua' || item.kategori === activeCategory;
-
-        return matchesSearch && matchesCategory;
+    const { data: response, isLoading, refetch, isRefetching, isError } = useQuery({
+        queryKey: ['pengumuman', activeCategory, searchQuery],
+        queryFn: () => api.getPengumuman(activeCategory, searchQuery),
+        staleTime: 60_000,
     });
 
-    // Sort by pinned first, then by date
-    const sortedAnnouncements = [...filteredAnnouncements].sort((a, b) => {
-        if (a.isPinned && !b.isPinned) return -1;
-        if (!a.isPinned && b.isPinned) return 1;
-        return new Date(b.tanggalPublikasi).getTime() - new Date(a.tanggalPublikasi).getTime();
-    });
+    const list = response?.data || [];
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             {/* Header */}
             <Animated.View entering={FadeIn.duration(400)} style={[styles.header, { backgroundColor: colors.tertiary }]}>
                 <ThemedText type="title" style={styles.headerTitle}>
-                    Pengumuman
+                    Berita
                 </ThemedText>
                 <ThemedText style={styles.headerSubtitle}>Berita & Informasi Paroki</ThemedText>
             </Animated.View>
@@ -67,7 +61,7 @@ export default function PengumumanScreen() {
                     <IconSymbol name="magnifyingglass" size={20} color={colors.textSecondary} />
                     <TextInput
                         style={[styles.searchInput, { color: colors.text }]}
-                        placeholder="Cari pengumuman..."
+                        placeholder="Cari berita..."
                         placeholderTextColor={colors.textSecondary}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
@@ -103,18 +97,34 @@ export default function PengumumanScreen() {
                 </Animated.View>
 
                 {/* Results Count */}
-                <Animated.View entering={FadeInDown.duration(500).delay(300)}>
-                    <ThemedText style={[styles.resultsCount, { color: colors.textSecondary }]}>
-                        {sortedAnnouncements.length} pengumuman ditemukan
-                    </ThemedText>
-                </Animated.View>
+                {!isLoading && (
+                    <Animated.View entering={FadeInDown.duration(500).delay(300)}>
+                        <ThemedText style={[styles.resultsCount, { color: colors.textSecondary }]}>
+                            {list.length} berita ditemukan
+                        </ThemedText>
+                    </Animated.View>
+                )}
 
                 {/* Announcements List */}
                 <ScrollView
                     showsVerticalScrollIndicator={false}
                     style={styles.listContainer}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.tertiary]} />}>
-                    {sortedAnnouncements.length === 0 ? (
+                    refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[colors.tertiary]} />}>
+
+                    {isLoading ? (
+                        <View style={styles.centered}>
+                            <ActivityIndicator size="large" color={colors.tertiary} />
+                        </View>
+                    ) : isError ? (
+                        <View style={styles.centered}>
+                            <ThemedText style={{ color: 'red', textAlign: 'center', marginBottom: Spacing.md }}>
+                                Gagal mengambil data pengumuman.
+                            </ThemedText>
+                            <Pressable style={[styles.retryBtn, { backgroundColor: colors.tertiary }]} onPress={() => refetch()}>
+                                <ThemedText style={{ color: 'white', fontWeight: 'bold' }}>Coba Lagi</ThemedText>
+                            </Pressable>
+                        </View>
+                    ) : list.length === 0 ? (
                         <Animated.View entering={FadeInDown.duration(500)} style={styles.emptyState}>
                             <ThemedText type="heading3" style={{ color: colors.textSecondary }}>
                                 Tidak ada pengumuman
@@ -122,13 +132,16 @@ export default function PengumumanScreen() {
                             <ThemedText style={{ color: colors.textSecondary, textAlign: 'center' }}>
                                 {searchQuery
                                     ? 'Coba kata kunci lain atau ubah filter kategori'
-                                    : 'Belum ada pengumuman untuk kategori ini'}
+                                    : 'Belum ada berita untuk kategori ini'}
                             </ThemedText>
                         </Animated.View>
                     ) : (
-                        sortedAnnouncements.map((announcement, idx) => (
-                            <Animated.View key={announcement.id} entering={FadeInDown.duration(400).delay(400 + idx * 50)}>
-                                <AnnouncementCard announcement={announcement} />
+                        list.map((item, idx) => (
+                            <Animated.View key={item.id} entering={FadeInDown.duration(400).delay(400 + idx * 50)}>
+                                <AnnouncementCard
+                                    announcement={toCardShape(item)}
+                                    onPress={() => router.push(`/pengumuman/${item.id}` as any)}
+                                />
                             </Animated.View>
                         ))
                     )}
@@ -139,65 +152,23 @@ export default function PengumumanScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    header: {
-        paddingTop: Spacing.xxl,
-        paddingBottom: Spacing.lg,
-        paddingHorizontal: Spacing.md,
-    },
-    headerTitle: {
-        color: '#FFFFFF',
-        marginBottom: Spacing.xs,
-    },
-    headerSubtitle: {
-        color: '#FFFFFF',
-        opacity: 0.9,
-        fontSize: 16,
-    },
-    content: {
-        flex: 1,
-        padding: Spacing.md,
-    },
+    container: { flex: 1 },
+    header: { paddingTop: Spacing.xxl, paddingBottom: Spacing.lg, paddingHorizontal: Spacing.md },
+    headerTitle: { color: '#FFFFFF', marginBottom: Spacing.xs },
+    headerSubtitle: { color: '#FFFFFF', opacity: 0.9, fontSize: 16 },
+    content: { flex: 1, padding: Spacing.md },
     searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: Spacing.md,
-        paddingVertical: Spacing.sm,
-        borderRadius: BorderRadius.md,
-        gap: Spacing.sm,
-        marginBottom: Spacing.md,
+        flexDirection: 'row', alignItems: 'center',
+        paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm,
+        borderRadius: BorderRadius.md, gap: Spacing.sm, marginBottom: Spacing.md,
     },
-    searchInput: {
-        flex: 1,
-        fontSize: 16,
-        paddingVertical: Spacing.xs,
-    },
-    categoriesContainer: {
-        flexGrow: 0,
-        marginBottom: Spacing.md,
-    },
-    categoryChip: {
-        paddingVertical: Spacing.xs,
-        paddingHorizontal: Spacing.md,
-        marginRight: Spacing.sm,
-    },
-    categoryText: {
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    resultsCount: {
-        fontSize: 13,
-        marginBottom: Spacing.sm,
-    },
-    listContainer: {
-        flex: 1,
-    },
-    emptyState: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: Spacing.xxl,
-        gap: Spacing.sm,
-    },
+    searchInput: { flex: 1, fontSize: 16, paddingVertical: Spacing.xs },
+    categoriesContainer: { flexGrow: 0, marginBottom: Spacing.md },
+    categoryChip: { paddingVertical: Spacing.xs, paddingHorizontal: Spacing.md, marginRight: Spacing.sm },
+    categoryText: { fontSize: 14, fontWeight: '600' },
+    resultsCount: { fontSize: 13, marginBottom: Spacing.sm },
+    listContainer: { flex: 1 },
+    centered: { paddingVertical: 60, alignItems: 'center', justifyContent: 'center' },
+    retryBtn: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: BorderRadius.md },
+    emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.xxl, gap: Spacing.sm },
 });

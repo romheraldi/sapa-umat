@@ -37,8 +37,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="pengumuman"
         options={{
-          title: 'Pengumuman',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="megaphone.fill" color={color} />,
+          title: 'Berita',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="newspaper.fill" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -48,7 +48,21 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.3.fill" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="iuran"
+        options={{
+          title: 'Iuran',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="creditcard.fill" color={color} />,
+        }}
+      />
+      {/* Akun tab — shows login/register page or member dashboard based on auth state */}
+      <Tabs.Screen
+        name="dokumen-placeholder"
+        options={{
+          title: 'Akun',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.circle.fill" color={color} />,
+        }}
+      />
     </Tabs>
   );
 }
-

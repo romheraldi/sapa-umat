@@ -412,10 +412,13 @@ export const lingkungan: Lingkungan[] = [
 export const infoGereja: InfoGereja = {
     namaParoki: 'Paroki Santo Arnoldus Janssen',
     namaPelindung: 'Santo Arnoldus Janssen (Pendiri SVD)',
-    alamatLengkap: 'Jl. Raya Narogong KM 16, Bekasi Timur, Kota Bekasi, Jawa Barat 17113',
-    telepon: '(021) 8242-xxxx',
+    alamatLengkap: 'Jl. Insinyur H. Juanda No.164, RT.002/RW.009, Margahayu, Kec. Bekasi Tim., Kota Bks, Jawa Barat 17113',
+    telepon: '(021) 8801763',
     email: 'sekretariat@parokisajbekasi.or.id',
     website: 'https://parokisajbekasi.or.id',
+    keuskupanAgung: 'Jakarta',
+    uskupAgung: 'Ignatius Kardinal Suharyo',
+    tahunRenovasi: '25 September 2011',
     pastor: [
         {
             nama: 'Rm. Antonius Budi Utomo, SVD',
@@ -426,16 +429,14 @@ export const infoGereja: InfoGereja = {
             jabatan: 'Vikaris',
         },
     ],
-    sejarahSingkat: `Paroki Santo Arnoldus Janssen Bekasi didirikan pada tanggal 15 Januari 1991. 
-Paroki ini merupakan bagian from Keuskupan Agung Jakarta. 
-Dipercayakan kepada Serikat Sabda Allah (SVD), paroki ini melayani umat Katolik di wilayah Bekasi Timur dengan semangat "Berbagi Sabda Allah" sesuai dengan karism SVD.`,
+    sejarahSingkat: `Paroki Santo Arnoldus Janssen Bekasi didirikan pada tanggal 15 Januari 1991. \n Paroki ini merupakan bagian dari Keuskupan Agung Jakarta. \nDipercayakan kepada Serikat Sabda Allah (SVD), paroki ini melayani umat Katolik di wilayah Bekasi Timur dengan semangat "Berbagi Sabda Allah" sesuai dengan karism SVD. Gedung gereja direnovasi dan selesai pada 25 September 2011.`,
     koordinatMap: {
-        latitude: -6.2824,
-        longitude: 107.0318,
+        latitude: -6.2381,
+        longitude: 106.9996,
     },
     jamOperasionalSekretariat: [
-        { hari: 'Senin - Jumat', jam: '09:00 - 15:00' },
-        { hari: 'Sabtu', jam: '09:00 - 12:00' },
+        { hari: 'Senin - Jumat', jam: '08:00 - 16:00' },
+        { hari: 'Sabtu', jam: '08:00 - 12:00' },
         { hari: 'Minggu', jam: 'Tutup' },
     ],
     galeri: [], // akan diisi dengan hasil generate_image nantinya

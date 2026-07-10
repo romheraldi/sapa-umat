@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+:root {
+  --burgundy: #800020;
+  --burgundy-dark: #5c0016;
+  --burgundy-light: #a3002a;
+  --gold: #C5922E;
+  --gold-light: #d4a843;
+  --sidebar-bg: #1a0a0f;
+  --sidebar-border: #2d1020;
+}
+
+body {
+  background-color: #f8f5f5;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #c9a4a4; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--burgundy); }

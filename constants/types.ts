@@ -146,6 +146,9 @@ export interface InfoGereja {
     telepon: string;
     email: string;
     website?: string;
+    keuskupanAgung?: string;
+    uskupAgung?: string;
+    tahunRenovasi?: string;
     pastor: Pastor[];
     sejarahSingkat: string;
     koordinatMap?: {
