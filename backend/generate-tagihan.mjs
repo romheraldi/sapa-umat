@@ -26,10 +26,9 @@ const db = createClient(url, serviceKey, {
 });
 
 async function main() {
-  const bulan = new Date().getMonth() + 1; // current month
   const tahun = new Date().getFullYear(); // current year
   
-  console.log(`Generating tagihan for ${bulan}/${tahun}`);
+  console.log(`Generating 1 year tagihan for ${tahun}`);
 
   // 1. Get configs
   const { data: configs, error: configError } = await db.from('iuran_config').select('*').eq('is_active', true);
@@ -52,26 +51,27 @@ async function main() {
   // 3. Get existing
   const { data: existingTagihan } = await db
     .from('tagihan_iuran')
-    .select('keluarga_id, iuran_config_id')
-    .eq('bulan', bulan)
+    .select('keluarga_id, iuran_config_id, bulan')
     .eq('tahun', tahun);
     
-  const existingSet = new Set((existingTagihan ?? []).map(t => `${t.keluarga_id}|${t.iuran_config_id}`));
+  const existingSet = new Set((existingTagihan ?? []).map(t => `${t.keluarga_id}|${t.iuran_config_id}|${t.bulan}`));
 
   // 4. Build insert rows
   const insertRows = [];
   for (const config of configs) {
     for (const keluarga of keluargaList) {
-      const key = `${keluarga.id}|${config.id}`;
-      if (!existingSet.has(key)) {
-        insertRows.push({
-          keluarga_id: keluarga.id,
-          iuran_config_id: config.id,
-          bulan,
-          tahun,
-          nominal: config.nominal,
-          status: 'belum_bayar',
-        });
+      for (let b = 1; b <= 12; b++) {
+        const key = `${keluarga.id}|${config.id}|${b}`;
+        if (!existingSet.has(key)) {
+          insertRows.push({
+            keluarga_id: keluarga.id,
+            iuran_config_id: config.id,
+            bulan: b,
+            tahun,
+            nominal: config.nominal,
+            status: 'belum_bayar',
+          });
+        }
       }
     }
   }

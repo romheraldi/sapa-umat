@@ -98,6 +98,10 @@ export async function createQrisCharge(
       order_id: orderId,
       gross_amount: grossAmount,
     },
+    custom_expiry: {
+      expiry_duration: 5,
+      unit: 'minute',
+    },
   }
 
   if (items && items.length > 0) {

@@ -63,7 +63,7 @@ export default function HomeScreen() {
                     title="Santo Arnoldus Janssen"
                     subtitle="Gereja Katolik Bekasi"
                     height={220}
-                    backgroundImage={<Image source={require('@/assets/images/church-hero.png')} style={styles.heroImage} resizeMode="cover" />}
+                    backgroundImage={<Image source={require('@/assets/images/church-hero.jpg')} style={styles.heroImage} resizeMode="cover" />}
                 />
             </Animated.View>
 

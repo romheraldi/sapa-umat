@@ -5,7 +5,7 @@ import type { PaymentStatusType } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/context/auth';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useLocalSearchParams, router } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
@@ -129,8 +129,13 @@ export default function BayarIuranScreen() {
                     if (transaction_status === 'settlement' || tagihan_status === 'lunas') {
                         setPaidAt(paid_at);
                         setState('success');
-                    } else if (transaction_status === 'expire' || tagihan_status === 'kadaluarsa') {
+                    } else if (transaction_status === 'expire') {
+                        Alert.alert('Info', 'Waktu pembayaran telah habis. Silakan buat pembayaran baru.');
                         setState('expired');
+                    } else if (transaction_status === 'cancel' || transaction_status === 'deny') {
+                        Alert.alert('Gagal', 'Pembayaran gagal atau ditolak. Silakan coba lagi.');
+                        setErrorMessage('Pembayaran gagal diproses oleh sistem.');
+                        setState('error');
                     }
                 }
             } catch {

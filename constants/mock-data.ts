@@ -59,7 +59,7 @@ export const jadwalMisa: JadwalMisa[] = [
         waktu: '06:00',
         bahasa: 'Indonesia',
         lokasi: 'Gereja Utama',
-        celebran: 'Rm. Antonius Budi Utomo, SVD',
+        celebran: 'Rm. Siprianus Wagung, SVD',
         deskripsi: 'Misa Kudus Minggu dengan paduan suara paroki',
         isAktif: true,
     },
@@ -72,7 +72,7 @@ export const jadwalMisa: JadwalMisa[] = [
         waktu: '08:00',
         bahasa: 'Indonesia',
         lokasi: 'Gereja Utama',
-        celebran: 'Rm. Yohanes Paulus, SVD',
+        celebran: 'Rm. Siprianus Wagung, SVD',
         deskripsi: 'Misa Kudus Minggu untuk keluarga',
         isAktif: true,
     },
@@ -85,7 +85,7 @@ export const jadwalMisa: JadwalMisa[] = [
         waktu: '17:00',
         bahasa: 'Indonesia',
         lokasi: 'Gereja Utama',
-        celebran: 'Rm. Antonius Budi Utomo, SVD',
+        celebran: 'Rm. Siprianus Wagung, SVD',
         deskripsi: 'Misa Kudus Minggu sore',
         isAktif: true,
     },
@@ -99,7 +99,7 @@ export const jadwalMisa: JadwalMisa[] = [
         waktu: '18:00',
         bahasa: 'Indonesia',
         lokasi: 'Gereja Utama',
-        celebran: 'Rm. Yohanes Paulus, SVD',
+        celebran: 'Rm. Siprianus Wagung, SVD',
         deskripsi: 'Ibadat Malam Minggu',
         isAktif: true,
     },
@@ -216,7 +216,7 @@ export const jadwalMisa: JadwalMisa[] = [
         waktu: '10:00',
         lokasi: 'Gereja Utama',
         catatan: 'Pendaftaran 2 minggu sebelumnya di sekretariat',
-        celebran: 'Rm. Antonius Budi Utomo, SVD',
+        celebran: 'Rm. Siprianus Wagung, SVD',
         isAktif: true,
     },
     {
@@ -421,12 +421,8 @@ export const infoGereja: InfoGereja = {
     tahunRenovasi: '25 September 2011',
     pastor: [
         {
-            nama: 'Rm. Antonius Budi Utomo, SVD',
+            nama: 'Rm. Siprianus Wagung, SVD',
             jabatan: 'Pastor Paroki',
-        },
-        {
-            nama: 'Rm. Yohanes Paulus, SVD',
-            jabatan: 'Vikaris',
         },
     ],
     sejarahSingkat: `Paroki Santo Arnoldus Janssen Bekasi didirikan pada tanggal 15 Januari 1991. \n Paroki ini merupakan bagian dari Keuskupan Agung Jakarta. \nDipercayakan kepada Serikat Sabda Allah (SVD), paroki ini melayani umat Katolik di wilayah Bekasi Timur dengan semangat "Berbagi Sabda Allah" sesuai dengan karism SVD. Gedung gereja direnovasi dan selesai pada 25 September 2011.`,
@@ -435,9 +431,8 @@ export const infoGereja: InfoGereja = {
         longitude: 106.9996,
     },
     jamOperasionalSekretariat: [
-        { hari: 'Senin - Jumat', jam: '08:00 - 16:00' },
-        { hari: 'Sabtu', jam: '08:00 - 12:00' },
-        { hari: 'Minggu', jam: 'Tutup' },
+        { hari: 'Senin - Sabtu', jam: '08.00 - 15.00 WIB' },
+        { hari: 'Minggu', jam: '07.00 - 12.00 WIB' },
     ],
     galeri: [], // akan diisi dengan hasil generate_image nantinya
 };

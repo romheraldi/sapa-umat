@@ -36,7 +36,7 @@ export default function InfoGerejaScreen() {
                     <SectionHeader title="Pastor Paroki" />
                     <Card variant="elevated" padding="md">
                         {infoGereja.pastor.map((p, index) => (
-                            <View key={index} style={styles.pastorItem}>
+                            <View key={index} style={[styles.pastorItem, index === infoGereja.pastor.length - 1 && styles.pastorItemLast]}>
                                 <ThemedText type="bodyMedium">{p.nama}</ThemedText>
                                 <ThemedText style={[styles.pastorRole, { color: colors.textSecondary }]}>{p.jabatan}</ThemedText>
                             </View>
@@ -137,6 +137,9 @@ const styles = StyleSheet.create({
         paddingVertical: Spacing.sm,
         borderBottomWidth: 1,
         borderBottomColor: '#E0E0E0',
+    },
+    pastorItemLast: {
+        borderBottomWidth: 0,
     },
     pastorRole: {
         fontSize: 14,

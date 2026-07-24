@@ -128,6 +128,33 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) throw error
+
+    // Generate 12 months of bills for the current year
+    try {
+      const { data: configs } = await db.from('iuran_config').select('*').eq('is_active', true)
+      if (configs && configs.length > 0) {
+        const tahun = new Date().getFullYear()
+        const insertRows = []
+        for (const config of configs) {
+          for (let bulan = 1; bulan <= 12; bulan++) {
+            insertRows.push({
+              keluarga_id: data.id,
+              iuran_config_id: config.id,
+              bulan,
+              tahun,
+              nominal: config.nominal,
+              status: 'belum_bayar',
+            })
+          }
+        }
+        if (insertRows.length > 0) {
+          await db.from('tagihan_iuran').insert(insertRows)
+        }
+      }
+    } catch (err) {
+      console.error('[POST /api/umat/keluarga] Error generating tagihan:', err)
+    }
+
     return NextResponse.json({ data, error: null }, { status: 201 })
   } catch (err: any) {
     console.error('[POST /api/umat/keluarga] Error:', err)

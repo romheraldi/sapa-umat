@@ -26,7 +26,7 @@ function GuestView() {
             {/* Header dengan foto gereja */}
             <Animated.View entering={FadeIn.duration(400)} style={styles.header}>
                 <Image
-                    source={require('@/assets/images/church-hero.png')}
+                    source={require('@/assets/images/church-hero.jpg')}
                     style={StyleSheet.absoluteFillObject}
                     resizeMode="cover"
                 />
@@ -89,7 +89,7 @@ function AuthenticatedView() {
             {/* Header dengan foto gereja */}
             <Animated.View entering={FadeIn.duration(400)} style={styles.header}>
                 <Image
-                    source={require('@/assets/images/church-hero.png')}
+                    source={require('@/assets/images/church-hero.jpg')}
                     style={StyleSheet.absoluteFillObject}
                     resizeMode="cover"
                 />

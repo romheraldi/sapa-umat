@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       transaction_status === 'cancel' ||
       transaction_status === 'deny'
     ) {
-      newStatus = 'kadaluarsa'
+      newStatus = 'belum_bayar'
     } else if (transaction_status === 'pending') {
       newStatus = 'menunggu_pembayaran'
     } else {
