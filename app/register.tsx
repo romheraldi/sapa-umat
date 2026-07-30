@@ -49,10 +49,9 @@ export default function RegisterScreen() {
         if (err) {
             setError(err);
         } else {
+            // Akun sudah terbuat dan sesi aktif. Lanjut ke langkah data keluarga —
+            // tanpa itu tagihan iuran tidak bisa dibuat.
             setSuccess(true);
-            setTimeout(() => {
-                router.replace('/(tabs)');
-            }, 1500);
         }
     };
 
@@ -67,8 +66,18 @@ export default function RegisterScreen() {
                         Berhasil Daftar!
                     </ThemedText>
                     <ThemedText style={[styles.subtitle, { color: colors.textSecondary }]}>
-                        Akun Anda telah dibuat. Mengalihkan ke beranda...
+                        Satu langkah lagi: lengkapi data keluarga Anda supaya tagihan iuran bisa dibuat.
                     </ThemedText>
+
+                    <Pressable
+                        style={({ pressed }) => [styles.btn, styles.successBtn, { backgroundColor: colors.primary, opacity: pressed ? 0.8 : 1 }]}
+                        onPress={() => router.replace('/data-umat/klaim' as any)}>
+                        <ThemedText style={styles.btnText}>Lengkapi Data Keluarga</ThemedText>
+                    </Pressable>
+
+                    <Pressable onPress={() => router.replace('/(tabs)')} style={styles.cancelBtn}>
+                        <ThemedText style={[styles.cancelText, { color: colors.textSecondary }]}>Nanti saja</ThemedText>
+                    </Pressable>
                 </Animated.View>
             </View>
         );
@@ -238,8 +247,11 @@ const styles = StyleSheet.create({
     infoBox: { borderWidth: 1, borderRadius: BorderRadius.sm, padding: Spacing.sm },
     infoText: { fontSize: 12, lineHeight: 18 },
     btn: { paddingVertical: 14, borderRadius: BorderRadius.md, alignItems: 'center', marginTop: Spacing.sm },
+    successBtn: { alignSelf: 'stretch', paddingHorizontal: Spacing.lg },
     btnText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
     cancelBtn: { alignItems: 'center', paddingVertical: Spacing.md },
     cancelText: { fontSize: 14 },
     successContainer: { alignItems: 'center', gap: Spacing.md, paddingHorizontal: Spacing.xl },
+    iconCircle: { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center' },
+    iconText: { color: '#FFFFFF', fontSize: 36, lineHeight: 44 },
 });

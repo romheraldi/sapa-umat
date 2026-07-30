@@ -35,11 +35,57 @@ export interface Keluarga {
   alamat_lengkap: string;
   no_telepon: string | null;
   kepala_keluarga_id: string | null;
+  /** false = didaftarkan sendiri oleh umat lewat mobile, menunggu verifikasi admin */
+  is_verified: boolean;
+  /** akun yang mendaftarkan keluarga ini dari mobile; null untuk data buatan admin */
+  created_by: string | null;
   created_at: string;
   updated_at: string;
   // Joined
   lingkungan?: Lingkungan;
   anggota?: Umat[];
+}
+
+// ─── Klaim / Registrasi Keluarga ──────────────────────────────────────────────
+
+/** Hasil GET /api/umat/keluarga/lookup — hanya nama, tanpa data yang dipakai verifikasi */
+export interface KeluargaLookup {
+  no_kk_katolik: string;
+  lingkungan: Lingkungan | null;
+  anggota_tersedia: { id: string; nama_lengkap: string }[];
+}
+
+export interface KlaimExistingPayload {
+  mode: 'existing';
+  umat_id: string;
+  tanggal_lahir: string;
+}
+
+export interface KlaimNewPayload {
+  mode: 'new';
+  keluarga: {
+    lingkungan_id: number;
+    alamat_lengkap: string;
+    no_telepon?: string | null;
+  };
+  data_diri: {
+    tempat_lahir: string;
+    tanggal_lahir: string;
+    jenis_kelamin: GenderType;
+    status_dalam_keluarga: FamilyStatusType;
+    status_perkawinan: MaritalStatusType;
+    status_baptis: boolean;
+    status_krisma: boolean;
+  };
+}
+
+export type KlaimPayload = KlaimExistingPayload | KlaimNewPayload;
+
+export interface KlaimResult {
+  keluarga_id: string;
+  no_kk_katolik: string | null;
+  tagihan: { created: number; skipped: number; tahun: number } | null;
+  warning: string | null;
 }
 
 export interface Umat {

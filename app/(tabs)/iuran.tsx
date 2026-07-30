@@ -75,6 +75,16 @@ export default function IuranScreen() {
 
     const tagihanList = response?.data || [];
 
+    // Akun yang belum tertaut ke keluarga tidak akan pernah punya tagihan.
+    // Bedakan dari "keluarga ada tapi tagihan kosong" supaya bisa diarahkan
+    // ke layar lengkapi data, bukan disuruh menunggu.
+    const { data: keluargaResponse } = useQuery({
+        queryKey: ['keluarga', 'milik-saya'],
+        queryFn: () => api.getKeluarga('', token ?? undefined),
+        enabled: !!token,
+    });
+    const belumPunyaKeluarga = (keluargaResponse?.data?.length ?? 0) === 0;
+
     // Current month's tagihan for the summary card
     const now = new Date();
     const currentMonth = now.getMonth() + 1;
@@ -113,6 +123,27 @@ export default function IuranScreen() {
             </Animated.View>
 
             <View style={styles.content}>
+                {/* Belum tertaut ke keluarga — tagihan tidak akan pernah muncul */}
+                {belumPunyaKeluarga && (
+                    <Animated.View entering={FadeInDown.duration(500).delay(100)}>
+                        <Card variant="elevated" padding="md" style={styles.summaryCard}>
+                            <ThemedText type="defaultSemiBold" style={{ color: colors.text }}>
+                                Lengkapi Data Keluarga
+                            </ThemedText>
+                            <ThemedText type="caption" style={{ color: colors.textSecondary, marginTop: Spacing.xs }}>
+                                Akun Anda belum tertaut ke keluarga, sehingga tagihan iuran belum bisa dibuat.
+                            </ThemedText>
+                            <Pressable
+                                style={[styles.payButton, { backgroundColor: colors.primary }]}
+                                onPress={() => router.push('/data-umat/klaim' as any)}>
+                                <ThemedText type="bodyMedium" style={{ color: '#FFFFFF' }}>
+                                    Lengkapi Sekarang
+                                </ThemedText>
+                            </Pressable>
+                        </Card>
+                    </Animated.View>
+                )}
+
                 {/* Summary Card */}
                 {currentTagihan && (
                     <Animated.View entering={FadeInDown.duration(500).delay(100)}>

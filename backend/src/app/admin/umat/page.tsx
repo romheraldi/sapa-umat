@@ -156,6 +156,23 @@ export default function DataUmatPage() {
     fetchData()
   }
 
+  // Keluarga yang didaftarkan sendiri oleh umat lewat mobile masuk dengan
+  // is_verified = false sampai admin/ketua memeriksanya.
+  const handleVerifikasi = async () => {
+    if (!selected) return
+    setSaving(true); setError(null)
+    const res = await fetch(`/api/umat/keluarga/${selected.no_kk_katolik}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_verified: true }),
+    })
+    const json = await res.json()
+    if (json.error) { setError(json.error); setSaving(false); return }
+    setSaving(false)
+    setSelected({ ...selected, is_verified: true })
+    fetchData()
+  }
+
   return (
     <div className="p-8 flex gap-6 h-full">
       {/* LEFT: List */}
@@ -199,6 +216,9 @@ export default function DataUmatPage() {
                 <div className="text-xs text-gray-500 mt-0.5 truncate">{k.alamat_lengkap}</div>
                 <div className="flex items-center gap-3 mt-2">
                   <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">{k.anggota?.length ?? 0} anggota</span>
+                  {k.is_verified === false && (
+                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Belum Diverifikasi</span>
+                  )}
                   {k.lingkungan && <span className="text-xs text-gray-400">{(k.lingkungan as any)?.nama}</span>}
                 </div>
               </button>
@@ -218,6 +238,23 @@ export default function DataUmatPage() {
             <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
           </div>
           <div className="flex-1 overflow-y-auto px-5 py-4">
+            {selected.is_verified === false && (
+              <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                <div className="text-sm font-semibold text-amber-800">Belum Diverifikasi</div>
+                <p className="text-xs text-amber-700 mt-0.5">
+                  Keluarga ini didaftarkan sendiri oleh umat lewat aplikasi. Periksa datanya sebelum menandai terverifikasi.
+                </p>
+                {canWrite && (
+                  <button
+                    onClick={handleVerifikasi}
+                    disabled={saving}
+                    className="mt-2.5 text-xs bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg font-medium transition"
+                  >
+                    {saving ? 'Menyimpan...' : 'Tandai Terverifikasi'}
+                  </button>
+                )}
+              </div>
+            )}
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-gray-700">Anggota Keluarga</h3>
               {canWrite && (

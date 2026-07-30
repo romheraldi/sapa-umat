@@ -1,4 +1,4 @@
-import { JadwalIbadah, Pengumuman, Keluarga, ApiResponse, PaginatedResponse, InfoGereja, TagihanIuran } from '@/types/database';
+import { JadwalIbadah, Pengumuman, Keluarga, ApiResponse, PaginatedResponse, InfoGereja, TagihanIuran, Lingkungan, KeluargaLookup, KlaimPayload, KlaimResult } from '@/types/database';
 
 // If testing on a real device, replace localhost with your computer's local IP address
 // Example: export const API_BASE_URL = 'http://192.168.1.5:3000/api';
@@ -68,6 +68,22 @@ export const api = {
     getKeluargaDetail: (noKk: string, token?: string) =>
         fetchApi<ApiResponse<Keluarga>>(`/umat/keluarga/${noKk}`, {
             headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }),
+
+    // Klaim / Registrasi Keluarga
+    getLingkungan: () =>
+        fetchApi<ApiResponse<Lingkungan[]>>('/umat/lingkungan'),
+
+    lookupKeluarga: (noKk: string, token?: string) =>
+        fetchApi<ApiResponse<KeluargaLookup>>(`/umat/keluarga/lookup?no_kk=${encodeURIComponent(noKk)}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }),
+
+    klaimKeluarga: (payload: KlaimPayload, token?: string) =>
+        fetchApi<ApiResponse<KlaimResult>>('/umat/klaim', {
+            method: 'POST',
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            body: JSON.stringify(payload),
         }),
 
     // Iuran
