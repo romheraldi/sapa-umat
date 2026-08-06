@@ -37,6 +37,10 @@ export interface Keluarga {
   alamat_lengkap: string;
   no_telepon: string | null;
   kepala_keluarga_id: string | null;
+  /** false = didaftarkan sendiri oleh umat lewat mobile, menunggu verifikasi admin */
+  is_verified: boolean;
+  /** akun yang mendaftarkan keluarga ini dari mobile; null untuk data buatan admin */
+  created_by: string | null;
   created_at: string;
   updated_at: string;
   // Joined
@@ -106,7 +110,10 @@ export type JadwalUpdate = Partial<JadwalInsert>;
 export type PengumumanInsert = Omit<Pengumuman, 'id' | 'created_at'>;
 export type PengumumanUpdate = Partial<PengumumanInsert>;
 
-export type KeluargaInsert = Omit<Keluarga, 'id' | 'created_at' | 'updated_at' | 'lingkungan' | 'anggota'>;
+// is_verified & created_by punya default di DB, jadi opsional saat insert
+export type KeluargaInsert =
+  Omit<Keluarga, 'id' | 'created_at' | 'updated_at' | 'lingkungan' | 'anggota' | 'is_verified' | 'created_by'>
+  & Partial<Pick<Keluarga, 'is_verified' | 'created_by'>>;
 export type KeluargaUpdate = Partial<KeluargaInsert>;
 
 export type UmatInsert = Omit<Umat, 'id' | 'created_at' | 'updated_at'>;

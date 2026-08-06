@@ -1,5 +1,6 @@
 import { getAuthUserWithRole, hasLingkunganAccess } from '@/lib/supabase/auth-helper'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { generateTagihanTahunBerjalan, type GenerateTagihanResult } from '@/lib/iuran/generate-tagihan'
 import { NextRequest, NextResponse } from 'next/server'
 import type { KeluargaInsert } from '@/types/database'
 
@@ -129,33 +130,19 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error
 
-    // Generate 12 months of bills for the current year
+    // Generate 12 bulan tagihan tahun berjalan.
+    // Keluarga tetap dianggap berhasil dibuat walau tagihan gagal — kegagalannya
+    // dilaporkan lewat field `warning` supaya tidak hilang diam-diam.
+    let tagihan: GenerateTagihanResult | null = null
+    let warning: string | null = null
     try {
-      const { data: configs } = await db.from('iuran_config').select('*').eq('is_active', true)
-      if (configs && configs.length > 0) {
-        const tahun = new Date().getFullYear()
-        const insertRows = []
-        for (const config of configs) {
-          for (let bulan = 1; bulan <= 12; bulan++) {
-            insertRows.push({
-              keluarga_id: data.id,
-              iuran_config_id: config.id,
-              bulan,
-              tahun,
-              nominal: config.nominal,
-              status: 'belum_bayar',
-            })
-          }
-        }
-        if (insertRows.length > 0) {
-          await db.from('tagihan_iuran').insert(insertRows)
-        }
-      }
+      tagihan = await generateTagihanTahunBerjalan(db, data.id)
     } catch (err) {
+      warning = err instanceof Error ? err.message : 'Gagal membuat tagihan iuran.'
       console.error('[POST /api/umat/keluarga] Error generating tagihan:', err)
     }
 
-    return NextResponse.json({ data, error: null }, { status: 201 })
+    return NextResponse.json({ data, tagihan, warning, error: null }, { status: 201 })
   } catch (err: any) {
     console.error('[POST /api/umat/keluarga] Error:', err)
     const message = err?.message || (typeof err === 'string' ? err : 'Terjadi kesalahan server.')

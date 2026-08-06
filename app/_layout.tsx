@@ -60,6 +60,14 @@ export default function RootLayout() {
                 }}
               />
               <Stack.Screen
+                name="data-umat/klaim"
+                options={{
+                  presentation: 'card',
+                  title: 'Data Keluarga',
+                  headerBackTitle: 'Kembali',
+                }}
+              />
+              <Stack.Screen
                 name="data-umat/[no_kk]"
                 options={{
                   presentation: 'card',
