@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     const db = createAdminClient()
     const { data: keluarga, error } = await db
       .from('keluarga')
-      .select('id, no_kk_katolik, lingkungan(id, nama, wilayah(id, nama)), anggota:umat(id, nama_lengkap, user_id)')
+      .select('id, no_kk_katolik, lingkungan(id, nama, wilayah(id, nama)), anggota:umat!umat_keluarga_id_fkey(id, nama_lengkap, user_id)')
       .eq('no_kk_katolik', noKk)
       .maybeSingle()
 

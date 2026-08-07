@@ -141,7 +141,7 @@ export default function DataUmatPage() {
       setError('Lengkapi nama, tempat, dan tanggal lahir.'); return
     }
     setSaving(true); setError(null)
-    const res = await fetch(`/api/umat/keluarga/${selected.no_kk_katolik}`, {
+    const res = await fetch(`/api/umat/keluarga/${selected.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(anggotaForm),
@@ -150,7 +150,7 @@ export default function DataUmatPage() {
     if (json.error) { setError(json.error); setSaving(false); return }
     setSaving(false); setShowAddAnggota(false)
     // Refresh selected detail
-    const res2 = await fetch(`/api/umat/keluarga/${selected.no_kk_katolik}`)
+    const res2 = await fetch(`/api/umat/keluarga/${selected.id}`)
     const json2 = await res2.json()
     if (json2.data) setSelected(json2.data)
     fetchData()
@@ -161,7 +161,7 @@ export default function DataUmatPage() {
   const handleVerifikasi = async () => {
     if (!selected) return
     setSaving(true); setError(null)
-    const res = await fetch(`/api/umat/keluarga/${selected.no_kk_katolik}`, {
+    const res = await fetch(`/api/umat/keluarga/${selected.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ is_verified: true }),

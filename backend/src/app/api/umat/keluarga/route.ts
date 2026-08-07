@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
         .select('keluarga_id')
         .eq('user_id', auth.user.id)
         .limit(1)
-        .single()
+        .maybeSingle()
 
       if (!umatRow) {
         return NextResponse.json({ data: [], count: 0, page, limit, error: null })
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
 
       const { data, error } = await db
         .from('keluarga')
-        .select('*, lingkungan(id, nama, wilayah(id, nama)), anggota:umat(*)')
+        .select('*, lingkungan(id, nama, wilayah(id, nama)), anggota:umat!umat_keluarga_id_fkey(*)')
         .eq('id', umatRow.keluarga_id)
 
       if (error) {
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     // ─── Role: admin / ketua_wilayah / ketua_lingkungan ───────────────────
     let query = db
       .from('keluarga')
-      .select('*, lingkungan(id, nama, wilayah(id, nama)), anggota:umat(*)', { count: 'exact' })
+      .select('*, lingkungan(id, nama, wilayah(id, nama)), anggota:umat!umat_keluarga_id_fkey(*)', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 

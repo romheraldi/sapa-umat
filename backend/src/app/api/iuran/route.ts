@@ -21,12 +21,41 @@ export async function GET(request: NextRequest) {
 
     // ─── Role: umat → only their own keluarga's tagihan ───────────────────
     if (auth.role === 'umat') {
-      const { data: umatRow } = await db
+      let { data: umatRow } = await db
         .from('umat')
-        .select('keluarga_id')
+        .select('id, keluarga_id')
         .eq('user_id', auth.user.id)
         .limit(1)
-        .single()
+        .maybeSingle()
+
+      // Fallback: If not linked by user_id yet, check if user's nama_lengkap matches an unlinked umat record
+      if (!umatRow) {
+        const { data: userRole } = await db
+          .from('users_roles')
+          .select('nama_lengkap')
+          .eq('id', auth.user.id)
+          .maybeSingle()
+
+        if (userRole?.nama_lengkap) {
+          const { data: matchedUmat } = await db
+            .from('umat')
+            .select('id, keluarga_id')
+            .ilike('nama_lengkap', `%${userRole.nama_lengkap.trim()}%`)
+            .is('user_id', null)
+            .limit(1)
+            .maybeSingle()
+
+          if (matchedUmat) {
+            // Auto-link user_id to this umat record
+            await db
+              .from('umat')
+              .update({ user_id: auth.user.id })
+              .eq('id', matchedUmat.id)
+
+            umatRow = matchedUmat
+          }
+        }
+      }
 
       if (!umatRow) {
         return NextResponse.json({ data: [], error: null })
@@ -109,24 +138,31 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { bulan, tahun, iuran_config_id } = body as {
-      bulan: number
+    const { bulan, tahun, iuran_config_id, generate_full_year } = body as {
+      bulan?: number
       tahun: number
       iuran_config_id?: number
+      generate_full_year?: boolean
     }
 
-    if (!bulan || !tahun) {
+    if (!tahun) {
       return NextResponse.json(
-        { data: null, error: 'Parameter bulan dan tahun wajib diisi.' },
+        { data: null, error: 'Parameter tahun wajib diisi.' },
         { status: 400 }
       )
     }
 
-    if (bulan < 1 || bulan > 12) {
-      return NextResponse.json(
-        { data: null, error: 'Bulan harus antara 1-12.' },
-        { status: 400 }
-      )
+    let targetMonths: number[] = []
+    if (generate_full_year || bulan === undefined || bulan === null || bulan === 0) {
+      targetMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    } else {
+      if (bulan < 1 || bulan > 12) {
+        return NextResponse.json(
+          { data: null, error: 'Bulan harus antara 1-12.' },
+          { status: 400 }
+        )
+      }
+      targetMonths = [bulan]
     }
 
     const db = createAdminClient()
@@ -165,16 +201,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get existing tagihan for this month/year to avoid duplicates
-    // (Supabase JS client doesn't support ON CONFLICT on non-PK columns)
-    const { data: existingTagihan } = await db
+    // Get existing tagihan for target months & year to avoid duplicates
+    let existingQuery = db
       .from('tagihan_iuran')
-      .select('keluarga_id, iuran_config_id')
-      .eq('bulan', bulan)
+      .select('keluarga_id, iuran_config_id, bulan')
       .eq('tahun', tahun)
 
+    if (targetMonths.length === 1) {
+      existingQuery = existingQuery.eq('bulan', targetMonths[0])
+    }
+
+    const { data: existingTagihan } = await existingQuery
+
     const existingSet = new Set(
-      (existingTagihan ?? []).map(t => `${t.keluarga_id}|${t.iuran_config_id}`)
+      (existingTagihan ?? []).map(t => `${t.keluarga_id}|${t.iuran_config_id}|${t.bulan}`)
     )
 
     // Build insert rows, skipping existing ones
@@ -189,16 +229,18 @@ export async function POST(request: NextRequest) {
 
     for (const config of configs) {
       for (const keluarga of keluargaList) {
-        const key = `${keluarga.id}|${config.id}`
-        if (!existingSet.has(key)) {
-          insertRows.push({
-            keluarga_id: keluarga.id,
-            iuran_config_id: config.id,
-            bulan,
-            tahun,
-            nominal: config.nominal,
-            status: 'belum_bayar',
-          })
+        for (const b of targetMonths) {
+          const key = `${keluarga.id}|${config.id}|${b}`
+          if (!existingSet.has(key)) {
+            insertRows.push({
+              keluarga_id: keluarga.id,
+              iuran_config_id: config.id,
+              bulan: b,
+              tahun,
+              nominal: config.nominal,
+              status: 'belum_bayar',
+            })
+          }
         }
       }
     }
@@ -233,7 +275,7 @@ export async function POST(request: NextRequest) {
         data: {
           created: totalCreated,
           skipped: existingSet.size,
-          bulan,
+          bulan: targetMonths.length === 1 ? targetMonths[0] : '1-12',
           tahun,
         },
         error: null,

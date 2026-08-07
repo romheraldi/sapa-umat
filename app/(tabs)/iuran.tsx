@@ -78,12 +78,12 @@ export default function IuranScreen() {
     // Akun yang belum tertaut ke keluarga tidak akan pernah punya tagihan.
     // Bedakan dari "keluarga ada tapi tagihan kosong" supaya bisa diarahkan
     // ke layar lengkapi data, bukan disuruh menunggu.
-    const { data: keluargaResponse } = useQuery({
+    const { data: keluargaResponse, isSuccess: isKeluargaSuccess } = useQuery({
         queryKey: ['keluarga', 'milik-saya'],
         queryFn: () => api.getKeluarga('', token ?? undefined),
         enabled: !!token,
     });
-    const belumPunyaKeluarga = (keluargaResponse?.data?.length ?? 0) === 0;
+    const belumPunyaKeluarga = isKeluargaSuccess && (keluargaResponse?.data?.length ?? 0) === 0;
 
     // Current month's tagihan for the summary card
     const now = new Date();

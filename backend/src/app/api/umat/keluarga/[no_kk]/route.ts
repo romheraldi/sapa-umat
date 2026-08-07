@@ -9,9 +9,13 @@ type Params = { params: Promise<{ no_kk: string }> }
  * Helper: fetch keluarga by no_kk and check role-based access.
  * Returns the keluarga row or an error response.
  */
+/**
+ * Helper: fetch keluarga by no_kk (or id) and check role-based access.
+ * Returns the keluarga row or an error response.
+ */
 async function getKeluargaWithAccess(
   request: NextRequest,
-  noKk: string,
+  noKkParam: string,
   requireWrite: boolean = false
 ) {
   const auth = await getAuthUserWithRole(request)
@@ -19,14 +23,29 @@ async function getKeluargaWithAccess(
     return { auth: null, keluarga: null, errorResponse: NextResponse.json({ data: null, error: 'Unauthorized.' }, { status: 401 }) }
   }
 
+  const noKk = decodeURIComponent(noKkParam).trim()
   const db = createAdminClient()
-  const { data: keluarga, error } = await db
-    .from('keluarga')
-    .select('*, lingkungan(id, nama, wilayah(id, nama)), anggota:umat(*)')
-    .eq('no_kk_katolik', noKk)
-    .single()
 
-  if (error || !keluarga) {
+  let { data: keluarga } = await db
+    .from('keluarga')
+    .select('*, lingkungan(id, nama, wilayah(id, nama)), anggota:umat!umat_keluarga_id_fkey(*)')
+    .eq('no_kk_katolik', noKk)
+    .maybeSingle()
+
+  if (!keluarga) {
+    // Try matching by UUID id as fallback
+    const { data: keluargaById } = await db
+      .from('keluarga')
+      .select('*, lingkungan(id, nama, wilayah(id, nama)), anggota:umat!umat_keluarga_id_fkey(*)')
+      .eq('id', noKk)
+      .maybeSingle()
+
+    if (keluargaById) {
+      keluarga = keluargaById
+    }
+  }
+
+  if (!keluarga) {
     return { auth, keluarga: null, errorResponse: NextResponse.json({ data: null, error: 'Keluarga tidak ditemukan.' }, { status: 404 }) }
   }
 
@@ -72,7 +91,7 @@ export async function GET(request: NextRequest, { params }: Params) {
 export async function PUT(request: NextRequest, { params }: Params) {
   try {
     const { no_kk } = await params
-    const { auth, errorResponse } = await getKeluargaWithAccess(request, no_kk, true)
+    const { auth, errorResponse, keluarga } = await getKeluargaWithAccess(request, no_kk, true)
     if (errorResponse) return errorResponse
 
     const body: KeluargaUpdate = await request.json()
@@ -86,7 +105,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
     const { data, error } = await db
       .from('keluarga')
       .update({ ...body, updated_at: new Date().toISOString() })
-      .eq('no_kk_katolik', no_kk)
+      .eq('id', keluarga!.id)
       .select()
       .single()
 
@@ -106,10 +125,18 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     if (errorResponse) return errorResponse
 
     const body: Omit<UmatInsert, 'keluarga_id'> = await request.json()
+
+    // Sanitize user_id (convert empty string to null)
+    const payload = {
+      ...body,
+      user_id: body.user_id ? body.user_id : null,
+      keluarga_id: keluarga!.id,
+    }
+
     const db = createAdminClient()
     const { data, error } = await db
       .from('umat')
-      .insert({ ...body, keluarga_id: keluarga!.id })
+      .insert(payload)
       .select()
       .single()
 

@@ -63,7 +63,7 @@ export default function AdminIuranPage() {
     fetchTagihan()
   }, [bulanFilter, tahunFilter])
 
-  const handleGenerate = async () => {
+  const handleGenerateMonth = async () => {
     if (!confirm(`Generate tagihan untuk bulan ${bulanNames[currentMonth]} ${currentYear}?`)) return
     
     setGenerating(true)
@@ -76,6 +76,32 @@ export default function AdminIuranPage() {
       const json = await res.json()
       if (res.ok) {
         alert(`Berhasil membuat ${json.data.created} tagihan baru. Dilewati: ${json.data.skipped}.`)
+        fetchTagihan()
+      } else {
+        alert('Gagal generate: ' + json.error)
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Terjadi kesalahan.')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const handleGenerateYear = async () => {
+    if (!confirm(`Generate tagihan 1 TAHUN FULL (12 bulan) untuk seluruh keluarga di tahun ${currentYear}?`)) return
+
+    setGenerating(true)
+    try {
+      const res = await fetch('/api/iuran', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ generate_full_year: true, tahun: currentYear }),
+      })
+      const json = await res.json()
+      if (res.ok) {
+        alert(`Berhasil membuat ${json.data.created} tagihan baru selama 1 tahun. Dilewati: ${json.data.skipped}.`)
+        setBulanFilter('') // Switch filter to all months to display all generated bills
         fetchTagihan()
       } else {
         alert('Gagal generate: ' + json.error)
@@ -120,13 +146,22 @@ export default function AdminIuranPage() {
           <h1 className="text-2xl font-bold text-gray-800">Kelola Iuran Bulanan</h1>
           <p className="text-gray-500 mt-1 text-sm">Manajemen penagihan dan pembayaran iuran umat.</p>
         </div>
-        <button
-          onClick={handleGenerate}
-          disabled={generating}
-          className="bg-[#800020] hover:bg-red-900 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition-all shadow-sm disabled:opacity-50"
-        >
-          {generating ? 'Memproses...' : 'Generate Tagihan Bulan Ini'}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={handleGenerateYear}
+            disabled={generating}
+            className="bg-[#800020] hover:bg-red-900 text-white px-4 py-2.5 rounded-xl font-medium text-sm transition-all shadow-sm disabled:opacity-50"
+          >
+            {generating ? 'Memproses...' : '⚡ Generate 1 Tahun Full'}
+          </button>
+          <button
+            onClick={handleGenerateMonth}
+            disabled={generating}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2.5 rounded-xl font-medium text-sm transition-all shadow-sm disabled:opacity-50"
+          >
+            {generating ? 'Memproses...' : 'Generate Bulan Ini'}
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
