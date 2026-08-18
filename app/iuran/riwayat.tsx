@@ -31,7 +31,7 @@ const getStatusConfig = (status: PaymentStatusType, colors: typeof Colors.light)
         case 'lunas':
             return { label: 'Lunas', color: colors.success, bgColor: colors.success + '15' };
         case 'kadaluarsa':
-            return { label: 'Kadaluarsa', color: colors.textSecondary, bgColor: colors.textSecondary + '15' };
+            return { label: 'Gagal / Kadaluarsa', color: colors.error, bgColor: colors.error + '15' };
     }
 };
 

@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://www.sapa-umat.my.id/api';
 
 const TOKEN_KEY = 'sapa_umat_token';
 const USER_KEY = 'sapa_umat_user';

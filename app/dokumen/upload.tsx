@@ -21,7 +21,7 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
+const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://www.sapa-umat.my.id/api';
 const SUPABASE_URL = 'https://pilzbulitvkdqsbzehmb.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpbHpidWxpdHZrZHFzYnplaG1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc2OTgsImV4cCI6MjA5NDU5MzY5OH0.GZI0qtzP3tnUDcg1G2I2mbVl_jjm7SxBMW-W5tZ6JU8';
 

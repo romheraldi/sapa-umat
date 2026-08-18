@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
+const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://www.sapa-umat.my.id/api';
 
 interface Dokumen {
     id: string;

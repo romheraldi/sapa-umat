@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     // Validate status and calculate total
     for (const tagihan of tagihans) {
-      if (tagihan.status !== 'belum_bayar' && tagihan.status !== 'menunggu_pembayaran') {
+      if (tagihan.status !== 'belum_bayar' && tagihan.status !== 'menunggu_pembayaran' && tagihan.status !== 'kadaluarsa') {
         return NextResponse.json(
           { data: null, error: `Tagihan dengan ID ${tagihan.id} tidak dapat dibayar. Status saat ini: ${tagihan.status}` },
           { status: 400 }

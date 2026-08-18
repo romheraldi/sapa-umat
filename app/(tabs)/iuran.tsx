@@ -24,7 +24,7 @@ const FILTER_TABS: Array<{ id: 'Semua' | PaymentStatusType; label: string }> = [
     { id: 'Semua', label: 'Semua' },
     { id: 'belum_bayar', label: 'Belum Bayar' },
     { id: 'lunas', label: 'Lunas' },
-    { id: 'kadaluarsa', label: 'Kadaluarsa' },
+    { id: 'kadaluarsa', label: 'Gagal' },
 ];
 
 const formatRupiah = (amount: number) => {
@@ -40,7 +40,7 @@ const getStatusConfig = (status: PaymentStatusType, colors: typeof Colors.light)
         case 'lunas':
             return { label: 'Lunas', color: colors.success, bgColor: colors.success + '15' };
         case 'kadaluarsa':
-            return { label: 'Kadaluarsa', color: colors.textSecondary, bgColor: colors.textSecondary + '15' };
+            return { label: 'Gagal / Kadaluarsa', color: colors.error, bgColor: colors.error + '15' };
     }
 };
 
@@ -178,7 +178,7 @@ export default function IuranScreen() {
                                 </ThemedText>
                             )}
 
-                            {currentTagihan.status === 'belum_bayar' && (
+                            {(currentTagihan.status === 'belum_bayar' || currentTagihan.status === 'kadaluarsa') && (
                                 <Pressable
                                     style={[styles.payButton, { backgroundColor: colors.primary }]}
                                     onPress={() => router.push(`/iuran/bayar?ids=${currentTagihan.id}`)}>
@@ -322,7 +322,7 @@ function TagihanCard({
     onToggle: () => void;
 }) {
     const statusConfig = getStatusConfig(tagihan.status, colors);
-    const canPay = tagihan.status === 'belum_bayar' || tagihan.status === 'menunggu_pembayaran';
+    const canPay = tagihan.status === 'belum_bayar' || tagihan.status === 'menunggu_pembayaran' || tagihan.status === 'kadaluarsa';
 
     const handlePress = () => {
         if (canPay) {

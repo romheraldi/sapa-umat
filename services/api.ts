@@ -2,7 +2,7 @@ import { JadwalIbadah, Pengumuman, Keluarga, ApiResponse, PaginatedResponse, Inf
 
 // If testing on a real device, replace localhost with your computer's local IP address
 // Example: export const API_BASE_URL = 'http://192.168.1.5:3000/api';
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://www.sapa-umat.my.id/api';
 
 async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
