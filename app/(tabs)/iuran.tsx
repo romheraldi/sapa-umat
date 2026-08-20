@@ -5,7 +5,7 @@ import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
 import type { PaymentStatusType, TagihanIuran } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/context/auth';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useQuery } from '@tanstack/react-query';
@@ -74,6 +74,23 @@ export default function IuranScreen() {
     });
 
     const tagihanList = response?.data || [];
+
+    // Bersihkan selectedIds jika ada tagihan yang sudah tidak bisa dibayar (misal karena sudah lunas)
+    useEffect(() => {
+        setSelectedIds(prev => {
+            const next = new Set<string>();
+            let changed = false;
+            for (const id of prev) {
+                const tagihan = tagihanList.find(t => t.id === id);
+                if (tagihan && (tagihan.status === 'belum_bayar' || tagihan.status === 'menunggu_pembayaran' || tagihan.status === 'kadaluarsa')) {
+                    next.add(id);
+                } else {
+                    changed = true;
+                }
+            }
+            return changed ? next : prev;
+        });
+    }, [tagihanList]);
 
     // Akun yang belum tertaut ke keluarga tidak akan pernah punya tagihan.
     // Bedakan dari "keluarga ada tapi tagihan kosong" supaya bisa diarahkan
