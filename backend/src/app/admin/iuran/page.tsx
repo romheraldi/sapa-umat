@@ -254,6 +254,14 @@ export default function AdminIuranPage() {
                           {actionLoadingId === tagihan.id ? 'Loading...' : 'Tandai Lunas'}
                         </button>
                       )}
+                      {tagihan.status === 'lunas' && tagihan.midtrans_order_id && (
+                        <a
+                          href={`/api/iuran/nota/${tagihan.midtrans_order_id}`}
+                          className="text-xs font-medium text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
+                        >
+                          Unduh Nota
+                        </a>
+                      )}
                     </td>
                   </tr>
                 ))
