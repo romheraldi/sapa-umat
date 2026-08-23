@@ -1,3 +1,4 @@
+import { File, Paths } from 'expo-file-system';
 import { JadwalIbadah, Pengumuman, Keluarga, ApiResponse, PaginatedResponse, InfoGereja, TagihanIuran, Lingkungan, KeluargaLookup, KlaimPayload, KlaimResult } from '@/types/database';
 
 // If testing on a real device, replace localhost with your computer's local IP address
@@ -111,4 +112,20 @@ export const api = {
             `/iuran/status/${orderId}`,
             { headers: token ? { Authorization: `Bearer ${token}` } : {} }
         ),
+
+    // Mengunduh nota PDF, mengembalikan URI berkas lokal.
+    // Tidak lewat fetchApi karena balasannya biner, bukan JSON.
+    // Nama berkas mengikuti Content-Disposition dari server, jadi jadi
+    // NOTA-2026-000123.pdf. Status non-2xx otomatis melempar error.
+    unduhNota: async (orderId: string, token?: string): Promise<string> => {
+        const berkas = await File.downloadFileAsync(
+            `${API_BASE_URL}/iuran/nota/${orderId}`,
+            Paths.cache,
+            {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+                idempotent: true,
+            }
+        );
+        return berkas.uri;
+    },
 };

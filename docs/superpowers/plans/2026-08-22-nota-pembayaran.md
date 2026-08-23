@@ -1317,7 +1317,7 @@ MSG
 **Files:**
 - Modify: `services/api.ts:88-115`
 - Modify: `app/iuran/riwayat.tsx:1-20, 180-200`
-- Modify: `types/database.ts` (tambah `midtrans_order_id` pada `TagihanIuran` kalau belum ada)
+- Modify: `types/database.ts` (tambah `midtrans_order_id` pada `TagihanIuran` kalau belum ada; pada repo ini sudah ada, jadi tidak berubah)
 
 **Interfaces:**
 - Consumes: `GET /api/iuran/nota/[orderId]`
@@ -1340,7 +1340,7 @@ Kalau belum ada, tambahkan `midtrans_order_id: string | null;` ke tipe `TagihanI
 Di `services/api.ts`, tambahkan impor di bagian atas berkas:
 
 ```ts
-import * as FileSystem from 'expo-file-system';
+import { File, Paths } from 'expo-file-system';
 ```
 
 Lalu tambahkan method ini di dalam objek `api`, setelah `cekStatusPembayaran`:
@@ -1348,21 +1348,26 @@ Lalu tambahkan method ini di dalam objek `api`, setelah `cekStatusPembayaran`:
 ```ts
     // Mengunduh nota PDF, mengembalikan URI berkas lokal.
     // Tidak lewat fetchApi karena balasannya biner, bukan JSON.
+    // Nama berkas mengikuti Content-Disposition dari server, jadi jadi
+    // NOTA-2026-000123.pdf. Status non-2xx otomatis melempar error.
     unduhNota: async (orderId: string, token?: string): Promise<string> => {
-        const tujuan = `${FileSystem.cacheDirectory}nota-${orderId}.pdf`;
-        const hasil = await FileSystem.downloadAsync(
+        const berkas = await File.downloadFileAsync(
             `${API_BASE_URL}/iuran/nota/${orderId}`,
-            tujuan,
-            { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+            Paths.cache,
+            {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+                idempotent: true,
+            }
         );
-
-        if (hasil.status !== 200) {
-            throw new Error('Gagal mengunduh nota. Coba lagi nanti.');
-        }
-
-        return hasil.uri;
+        return berkas.uri;
     },
 ```
+
+`expo-file-system` di SDK 54 memakai API `File`/`Directory`/`Paths`. Cara lama
+`FileSystem.downloadAsync` dan `FileSystem.cacheDirectory` masih ada tapi hanya
+lewat `expo-file-system/legacy`; memanggilnya dari entri utama akan melempar
+error saat dijalankan. `idempotent: true` wajib supaya mengunduh nota yang sama
+dua kali menimpa berkas lama, bukan gagal.
 
 - [ ] **Step 4: Tambah tombol di layar riwayat**
 
@@ -1408,7 +1413,7 @@ Di dalam blok `{tagihan.status === 'lunas' && tagihan.paid_at && (...)}` yang su
         <Pressable
             onPress={() => handleUnduhNota(tagihan.midtrans_order_id!)}
             disabled={unduhAktif === tagihan.midtrans_order_id}
-            style={{ marginTop: Spacing.xs, alignSelf: 'flex-start' }}>
+            style={styles.unduhBtn}>
             <ThemedText type="smallMedium" style={{ color: colors.primary }}>
                 {unduhAktif === tagihan.midtrans_order_id ? 'Menyiapkan…' : '⬇ Unduh Nota'}
             </ThemedText>

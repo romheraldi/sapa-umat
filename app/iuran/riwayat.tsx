@@ -6,10 +6,11 @@ import type { PaymentStatusType, TagihanIuran } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/context/auth';
 import { useState, useMemo } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
+import * as Sharing from 'expo-sharing';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -52,6 +53,30 @@ export default function RiwayatIuranScreen() {
     });
 
     const tagihanList = response?.data || [];
+
+    const [unduhAktif, setUnduhAktif] = useState<string | null>(null);
+
+    const handleUnduhNota = async (orderId: string) => {
+        setUnduhAktif(orderId);
+        try {
+            const uri = await api.unduhNota(orderId, token ?? undefined);
+            if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(uri, {
+                    mimeType: 'application/pdf',
+                    dialogTitle: 'Simpan atau bagikan nota',
+                });
+            } else {
+                Alert.alert('Nota tersimpan', 'Berkas nota sudah diunduh ke perangkat.');
+            }
+        } catch (err) {
+            Alert.alert(
+                'Gagal mengunduh',
+                err instanceof Error ? err.message : 'Terjadi kesalahan saat mengunduh nota.'
+            );
+        } finally {
+            setUnduhAktif(null);
+        }
+    };
 
     // Group by month, sorted descending
     const groupedByMonth = useMemo(() => {
@@ -191,6 +216,16 @@ export default function RiwayatIuranScreen() {
                                                                     Dibayar {new Date(tagihan.paid_at).toLocaleDateString('id-ID')}
                                                                 </ThemedText>
                                                             )}
+                                                            {tagihan.status === 'lunas' && tagihan.midtrans_order_id && (
+                                                                <Pressable
+                                                                    onPress={() => handleUnduhNota(tagihan.midtrans_order_id!)}
+                                                                    disabled={unduhAktif === tagihan.midtrans_order_id}
+                                                                    style={styles.unduhBtn}>
+                                                                    <ThemedText type="smallMedium" style={{ color: colors.primary }}>
+                                                                        {unduhAktif === tagihan.midtrans_order_id ? 'Menyiapkan…' : '⬇ Unduh Nota'}
+                                                                    </ThemedText>
+                                                                </Pressable>
+                                                            )}
                                                         </View>
                                                         <View style={[styles.statusBadge, { backgroundColor: statusConfig.bgColor }]}>
                                                             <ThemedText type="smallMedium" style={{ color: statusConfig.color }}>
@@ -247,6 +282,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.md,
     },
     tagihanInfo: { flex: 1, gap: 2 },
+    unduhBtn: { marginTop: Spacing.xs, alignSelf: 'flex-start' },
     statusBadge: {
         paddingVertical: Spacing.xs,
         paddingHorizontal: Spacing.sm,
