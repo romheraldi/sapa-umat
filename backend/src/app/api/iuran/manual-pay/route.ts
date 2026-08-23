@@ -1,6 +1,7 @@
 import { getAuthUserWithRole } from '@/lib/supabase/auth-helper'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
 
 // POST /api/iuran/manual-pay
 // Body: { tagihan_ids: string[] }
@@ -23,10 +24,14 @@ export async function POST(request: NextRequest) {
 
     const db = createAdminClient()
 
+    // Satu batch penandaan lunas = satu transaksi = satu nota.
+    const orderId = `MANUAL-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`
+
     const { error: updateError } = await db
       .from('tagihan_iuran')
       .update({
         status: 'lunas',
+        midtrans_order_id: orderId,
         midtrans_transaction_id: 'MANUAL',
         paid_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -41,7 +46,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ data: 'success', error: null })
+    return NextResponse.json({ data: { order_id: orderId }, error: null })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Terjadi kesalahan server.'
     console.error('[POST /api/iuran/manual-pay] Caught error:', err)
